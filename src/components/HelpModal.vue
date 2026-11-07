@@ -41,7 +41,8 @@ const emit = defineEmits<{ (event: 'close'): void }>()
 
         <p class="note">
           颜色指的是<strong>字母</strong>猜得对不对，汉字是这次输入的对应的人名的字，不会影响颜色。
-          只能提交 <a href="https://sysx.nulla.top" target="_blank">SYSX</a> 中存在的四字人名。
+          只能提交 <a href="https://sysx.nulla.top" target="_blank">SYSX</a>
+          中存在的{{ codeLength === 3 ? '三' : '四' }}字人名。
         </p>
       </div>
     </div>

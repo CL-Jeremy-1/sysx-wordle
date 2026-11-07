@@ -1,13 +1,18 @@
 import { computed, nextTick, ref, shallowRef } from 'vue'
-import { CODE_LENGTH, MAX_GUESSES, STATE_RANK } from '../constant'
+import { MAX_GUESSES, STATE_RANK } from '../constant'
 import { extractAnswerCode, fetchAnswerText } from '../game/answerApi'
 import { buildGuess, mergeKeyStates } from '../game/evaluate'
 import { loadWordList, type WordList } from '../game/wordList'
 
 export type GameStatus = 'loading' | 'playing' | 'won' | 'lost' | 'error'
 
-/** How long the flip animation runs, so input waits for the row to settle. */
-export const REVEAL_MS = 3 * 220 + 260
+/**
+ * How long a row's flip runs, so input waits for it to settle: one stagger
+ * (220ms, see `GameBoard.vue`) per gap between cells, plus the settle window.
+ */
+function revealMs(codeLength: number): number {
+  return (codeLength - 1) * 220 + 260
+}
 
 export function useWordle() {
   const wordList = shallowRef<WordList | null>(null)
@@ -20,6 +25,10 @@ export function useWordle() {
   const message = ref('')
   const revealing = ref(false)
   const shaky = ref(false)
+  /** Mode width: set from the answer once it arrives; the four-letter default
+   *  only shows while loading, when no board is rendered. */
+  const codeLength = ref(4)
+  const maxGuesses = computed(() => MAX_GUESSES[codeLength.value])
 
   let messageTimer: ReturnType<typeof setTimeout> | undefined
   let shakeTimer: ReturnType<typeof setTimeout> | undefined
@@ -30,7 +39,7 @@ export function useWordle() {
   )
   const letters = computed(() => wordList.value?.letters ?? '')
   const canSubmit = computed(
-    () => status.value === 'playing' && !revealing.value && draft.value.length === CODE_LENGTH,
+    () => status.value === 'playing' && !revealing.value && draft.value.length === codeLength.value,
   )
   const acceptsInput = computed(() => status.value === 'playing' && !revealing.value)
 
@@ -63,16 +72,18 @@ export function useWordle() {
     message.value = ''
 
     try {
-      const list = await loadWordList(undefined, signal)
-      wordList.value = list
-
+      // The answer comes first: its width picks the word list and guess count.
       const body = await fetchAnswerText(signal)
       const code = extractAnswerCode(body)
       if (!code) {
-        throw new Error('答案接口没有返回四位字母')
+        throw new Error('答案接口没有返回三或四位字母')
       }
+
+      codeLength.value = code.length
+      const list = await loadWordList(code.length, signal)
+      wordList.value = list
       if (!list.isValidGuess(code)) {
-        throw new Error(`答案「${code}」不在词库中`)
+        throw new Error(`答案不在词库中`)
       }
 
       answerCode.value = code
@@ -87,7 +98,7 @@ export function useWordle() {
 
   function press(letter: string) {
     if (!acceptsInput.value) return
-    if (!letter || draft.value.length >= CODE_LENGTH) return
+    if (!letter || draft.value.length >= codeLength.value) return
     draft.value += letter.toLowerCase()
   }
 
@@ -98,7 +109,7 @@ export function useWordle() {
 
   async function submit() {
     if (!acceptsInput.value) return
-    if (draft.value.length < CODE_LENGTH) {
+    if (draft.value.length < codeLength.value) {
       reject('未填写完整')
       return
     }
@@ -119,11 +130,11 @@ export function useWordle() {
     guesses.value = [...guesses.value, guess]
     draft.value = ''
 
-    await wait(REVEAL_MS)
+    await wait(revealMs(codeLength.value))
     revealing.value = false
 
     if (solved) status.value = 'won'
-    else if (guesses.value.length >= MAX_GUESSES) status.value = 'lost'
+    else if (guesses.value.length >= maxGuesses.value) status.value = 'lost'
   }
 
   function restart() {
@@ -154,8 +165,8 @@ export function useWordle() {
     currentRow,
     canSubmit,
     acceptsInput,
-    maxGuesses: MAX_GUESSES,
-    codeLength: CODE_LENGTH,
+    maxGuesses,
+    codeLength,
     // actions
     start,
     press,

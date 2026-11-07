@@ -1,4 +1,4 @@
-import { CODE_LENGTH } from '../constant'
+import { SUPPORTED_LENGTHS } from '../constant'
 
 /** Answer endpoint from `VITE_ANSWER_API` in `.env`. */
 export const ANSWER_API_URL: string = import.meta.env.VITE_ANSWER_API
@@ -44,7 +44,7 @@ export function extractAnswerCode(body: string): string | null {
 }
 
 function isCode(text: string): boolean {
-  return text.length === CODE_LENGTH && /^[a-z]+$/i.test(text)
+  return /^[a-z]+$/i.test(text) && SUPPORTED_LENGTHS.includes(text.length)
 }
 
 /** Strip one layer of wrapping quotes, so `"hgcn"` reads as `hgcn`. */

@@ -13,6 +13,10 @@ const main = async () => {
   const fourLetterList = Object.entries(data)
     .filter(el => el[1].pysx && el[1].pysx.length === 4)
     .map(el => [el[0], el[1].pysx])
-  writeFileSync('./public/data.json', JSON.stringify(fourLetterList))
+  const threeLetterList = Object.entries(data)
+    .filter(el => el[1].pysx && el[1].pysx.length === 3)
+    .map(el => [el[0], el[1].pysx])
+  writeFileSync('./public/4letters.json', JSON.stringify(fourLetterList))
+  writeFileSync('./public/3letters.json', JSON.stringify(threeLetterList))
 }
 main()

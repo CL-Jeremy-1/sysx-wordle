@@ -21,6 +21,14 @@ const shareUrl = computed(() => {
 const finished = computed(
   () => game.status.value === 'won' || game.status.value === 'lost',
 )
+
+/** Mode numerals for the tagline; until the answer loads the mode is unknown. */
+const CN_NUMERALS: Record<number, string> = { 3: '三', 4: '四', 5: '五' }
+const tagline = computed(() =>
+  game.status.value === 'playing' || finished.value
+    ? `${CN_NUMERALS[game.codeLength.value]}位字母 · ${CN_NUMERALS[game.maxGuesses.value]}步机会 · 每步显示中文名`
+    : '三或四位字母 · 由今日答案决定 · 每步显示中文名',
+)
 /** Wait for the final row's flip to finish before the popup takes over. */
 const resultOpen = computed(
   () => finished.value && !game.revealing.value && !resultDismissed.value,
@@ -105,7 +113,7 @@ function onKeydown(event: KeyboardEvent) {
     <header class="topbar">
       <div class="brand">
         <h1>女声优缩写 Wordle</h1>
-        <p class="tagline">四位字母 · 五步机会 · 每步显示中文名</p>
+        <p class="tagline">Powered by <a href="https://sysx.nulla.top/" target="_blank">SYSX</a></p>
       </div>
       <div class="tools">
         <button type="button" class="ghost" @click="helpOpen = true">玩法</button>
@@ -124,8 +132,8 @@ function onKeydown(event: KeyboardEvent) {
       </template>
 
       <template v-else>
-        <GameBoard :guesses="game.guesses.value" :draft="game.draft.value" :code-length="game.codeLength"
-          :max-guesses="game.maxGuesses" :current-row="game.currentRow.value" :revealing="game.revealing.value"
+        <GameBoard :guesses="game.guesses.value" :draft="game.draft.value" :code-length="game.codeLength.value"
+          :max-guesses="game.maxGuesses.value" :current-row="game.currentRow.value" :revealing="game.revealing.value"
           :shaky="game.shaky.value" />
 
         <p class="message" :class="{ 'is-visible': !!game.message.value }">
@@ -146,11 +154,12 @@ function onKeydown(event: KeyboardEvent) {
     </footer>
 
     <ResultModal v-if="resultOpen && (game.status.value === 'won' || game.status.value === 'lost')"
-      :status="game.status.value" :guesses="game.guesses.value" :max-guesses="game.maxGuesses" :share-url="shareUrl"
-      :answer-code="game.answerCode.value" :answer-name="game.answerName.value" @restart="restart()"
-      @close="resultDismissed = true" @shared="onShared" />
+      :status="game.status.value" :guesses="game.guesses.value" :max-guesses="game.maxGuesses.value"
+      :share-url="shareUrl" :answer-code="game.answerCode.value" :answer-name="game.answerName.value"
+      @restart="restart()" @close="resultDismissed = true" @shared="onShared" />
 
-    <HelpModal :open="helpOpen" :max-guesses="game.maxGuesses" :code-length="game.codeLength" @close="closeHelp" />
+    <HelpModal :open="helpOpen" :max-guesses="game.maxGuesses.value" :code-length="game.codeLength.value"
+      @close="closeHelp" />
   </div>
 </template>
 

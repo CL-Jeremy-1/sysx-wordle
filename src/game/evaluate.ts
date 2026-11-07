@@ -1,17 +1,16 @@
-import { CODE_LENGTH } from '../constant'
-
 /**
  * Score a guess the way the original Wordle does: exact positions first, then
  * remaining letters as "present" while the answer still has an unused copy of
  * them, so a repeated letter is only credited as many times as it occurs.
  *
  * Only the letter verdicts are decided here. Which Chinese characters are shown
- * is a separate concern — see {@link buildGuess}.
+ * is a separate concern — see {@link buildGuess}. The answer's own width wins:
+ * it is what picked the mode, so it sizes the comparison.
  */
 export function evaluateGuess(guess: string, answer: string): Evaluation {
   const code = guess.toLowerCase()
   const solution = answer.toLowerCase()
-  const length = Math.min(CODE_LENGTH, code.length)
+  const length = Math.min(solution.length, code.length)
 
   const pool = new Map<string, number>()
   for (const letter of solution) {

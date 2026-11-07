@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs'
 
-const data = JSON.parse(readFileSync('./public/data.json'))
+const data = JSON.parse(readFileSync(process.argv[2] ?? './public/4letters.json'))
 const mergedData = new Map()
 for (const el of data) {
   const key = el[1]

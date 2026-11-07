@@ -5,8 +5,11 @@ export const STATE_RANK: Record<LetterState, number> = {
   correct: 2,
 }
 
-/** Width of the code, in letters. */
-export const CODE_LENGTH = 4
+/** Code widths the game supports, in letters; the answer picks the mode. */
+export const SUPPORTED_LENGTHS: readonly number[] = [3, 4]
 
-/** Number of allowed submissions. */
-export const MAX_GUESSES = 5
+/** Number of allowed submissions, per code width. */
+export const MAX_GUESSES: Record<number, number> = {
+  3: 4,
+  4: 5,
+}

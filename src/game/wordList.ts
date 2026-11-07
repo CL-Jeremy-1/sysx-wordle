@@ -1,5 +1,3 @@
-import { CODE_LENGTH } from '../constant'
-
 /** Unicode NFC so characters that have composed forms compare equal. */
 function normalize(value: string): string {
   return value.normalize('NFC')
@@ -7,11 +5,13 @@ function normalize(value: string): string {
 
 /**
  * A code is not unique in the word list: some codes fit several names that share
- * the same four initials. Every entry is kept, and lookups return them all.
+ * the same initials. Every entry is kept, and lookups return them all.
  */
 export class WordList {
   private readonly byCode = new Map<string, WordEntry[]>()
   readonly entries: WordEntry[]
+  /** Width every code in this list shares, in letters. */
+  readonly codeLength: number
   /** Every letter that can appear at some position, in keyboard order. */
   readonly letters: string
   /** Every distinct character used by the list, for input validation. */
@@ -19,6 +19,7 @@ export class WordList {
 
   constructor(entries: WordEntry[]) {
     this.entries = entries
+    this.codeLength = normalize(entries[0]?.[1] ?? '').length
     const chars = new Set<string>()
     for (const entry of entries) {
       const code = normalize(entry[1])
@@ -36,10 +37,10 @@ export class WordList {
     return this.byCode.get(normalize(code)) ?? []
   }
 
-  /** A run of `CODE_LENGTH` letters that some entry uses. */
+  /** A run of `codeLength` letters that some entry uses. */
   isValidGuess(code: string): boolean {
     const normalized = normalize(code)
-    return normalized.length === CODE_LENGTH && this.byCode.has(normalized)
+    return normalized.length === this.codeLength && this.byCode.has(normalized)
   }
 
   /** A single character that occurs anywhere in the list. */
@@ -68,11 +69,15 @@ export class WordList {
   }
 }
 
-/** The word list is served as a static asset, so it stays in sync with `public/`. */
+/**
+ * The word list is served as a static asset, so it stays in sync with `public/`.
+ * The mode's width picks the file: `3letters.json` / `4letters.json`.
+ */
 export async function loadWordList(
-  url = `${import.meta.env.BASE_URL}data.json`,
+  codeLength: number,
   signal?: AbortSignal,
 ): Promise<WordList> {
+  const url = `${import.meta.env.BASE_URL}${codeLength}letters.json`
   const response = await fetch(url, { signal })
   if (!response.ok) {
     throw new Error(`词库加载失败（HTTP ${response.status}）`)
@@ -87,7 +92,7 @@ export async function loadWordList(
       Array.isArray(item) &&
       typeof item[0] === 'string' &&
       typeof item[1] === 'string' &&
-      item[1].length === CODE_LENGTH
+      item[1].length === codeLength
     ) {
       entries.push([normalize(item[0]), normalize(item[1])])
     }
