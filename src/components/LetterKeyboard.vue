@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { LetterState } from '../game/types'
 
 /** The original three-row QWERTY layout. */
 const ROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'] as const

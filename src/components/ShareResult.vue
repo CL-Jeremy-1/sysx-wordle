@@ -2,7 +2,6 @@
 import { Check, Share2 } from '@lucide/vue'
 import { ref, watch } from 'vue'
 import { copyResult } from '../game/share'
-import type { Guess } from '../game/types'
 
 /** How long the button keeps its "copied" confirmation. */
 const CONFIRM_MS = 2000

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import type { LetterState } from '../game/types'
 
 /** Must match the `flip` animation duration below. */
 const FLIP_MS = 560

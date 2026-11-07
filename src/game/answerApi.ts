@@ -1,4 +1,4 @@
-import { CODE_LENGTH } from './types'
+import { CODE_LENGTH } from '../constant'
 
 /** Answer endpoint from `VITE_ANSWER_API` in `.env`. */
 export const ANSWER_API_URL: string = import.meta.env.VITE_ANSWER_API

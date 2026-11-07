@@ -1,5 +1,4 @@
-import type { Evaluation, Guess, LetterState, Tile } from './types'
-import { CODE_LENGTH } from './types'
+import { CODE_LENGTH } from '../constant'
 
 /**
  * Score a guess the way the original Wordle does: exact positions first, then

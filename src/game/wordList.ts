@@ -1,5 +1,4 @@
-import type { WordEntry } from './types'
-import { CODE_LENGTH } from './types'
+import { CODE_LENGTH } from '../constant'
 
 /** Unicode NFC so characters that have composed forms compare equal. */
 function normalize(value: string): string {

@@ -1,8 +1,7 @@
 import { computed, nextTick, ref, shallowRef } from 'vue'
+import { CODE_LENGTH, MAX_GUESSES, STATE_RANK } from '../constant'
 import { extractAnswerCode, fetchAnswerText } from '../game/answerApi'
 import { buildGuess, mergeKeyStates } from '../game/evaluate'
-import type { Guess, LetterState } from '../game/types'
-import { CODE_LENGTH, MAX_GUESSES, STATE_RANK } from '../game/types'
 import { loadWordList, type WordList } from '../game/wordList'
 
 export type GameStatus = 'loading' | 'playing' | 'won' | 'lost' | 'error'

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Guess } from '../game/types'
 import GameCell from './GameCell.vue'
 
 /** Matches the flip duration and stagger inside `GameCell.vue`. */

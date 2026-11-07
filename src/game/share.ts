@@ -1,5 +1,3 @@
-import type { Guess } from './types'
-
 /** One square per letter verdict, Wordle-style. */
 const SQUARES: Record<string, string> = {
   correct: '🟩',

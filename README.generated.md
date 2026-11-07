@@ -40,8 +40,10 @@ pnpm preview  # 预览构建产物
 
 ```
 src/
+├── types.d.ts         # 全局类型（牌面、字母状态等），免 import 直接使用
+├── constant/
+│   └── index.ts       # 游戏常量（码长、可猜次数、字母状态权重）
 ├── game/
-│   ├── types.ts       # 牌面、字母状态等类型与常量
 │   ├── wordList.ts    # 词组列表加载、校验与重名组合解析
 │   ├── answerApi.ts   # 答案接口请求与返回内容解析
 │   └── evaluate.ts    # Wordle 判定规则与汉字揭晓逻辑

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import ShareResult from './ShareResult.vue'
-import type { Guess } from '../game/types'
 
 /** Matches the button's own confirmation window in `ShareResult.vue`. */
 const NOTE_MS = 2000
