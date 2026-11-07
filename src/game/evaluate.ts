@@ -39,7 +39,7 @@ export function evaluateGuess(guess: string, answer: string): Evaluation {
 
   const tiles: Tile[] = []
   for (let i = 0; i < length; i += 1) {
-    tiles.push({ letter: code[i], char: null, state: states[i] })
+    tiles.push({ letter: code[i], charOrAltChars: null, state: states[i] })
   }
 
   return { tiles, solved: states.every((state) => state === 'correct') }
@@ -48,20 +48,25 @@ export function evaluateGuess(guess: string, answer: string): Evaluation {
 /**
  * Build the tile row for a submitted guess.
  *
- * `guessName` is the Chinese name that the typed code spells in the word list,
- * one character per letter. Every tile shows its own character, so each
- * submission reads as a straight letter-to-character correspondence even when
+ * `matchedNames` are names in the word list which, when read in Chinese, match
+ * the typed pinyin initials. Every tile shows its own character(s), so each
+ * submission reads as straight letter-to-character correspondences even when
  * the letters are misplaced — the colour is what speaks about the answer.
  */
 export function buildGuess(
   guessCode: string,
   answerCode: string,
-  guessName: string,
+  matchedNames: string[],
 ): { guess: Guess; solved: boolean } {
+  const charOrAltCharsList = Array.from(matchedNames[0]).map((char0, i) =>
+    matchedNames.slice(1)
+      .reduce((char, str) => char == str[i] ? char : char + '/' + str[i], char0)
+  )
   const { tiles, solved } = evaluateGuess(guessCode, answerCode)
   for (let i = 0; i < tiles.length; i += 1) {
-    tiles[i].char = guessName[i] ?? null
+    tiles[i].charOrAltChars = charOrAltCharsList[i] ?? null
   }
+  const guessName = matchedNames.join('/')
   return { guess: { code: guessCode, name: guessName, tiles }, solved }
 }
 

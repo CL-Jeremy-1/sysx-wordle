@@ -12,8 +12,9 @@ withDefaults(
     maxGuesses: number
     /** Page link appended to the shared result. Never part of the grid. */
     shareUrl?: string
-    /** Revealed only on a win. */
+    /** Revealed only on a win. @see {@link Guess}.code */
     answerCode?: string
+    /** Multiple names are joined with "/". @see {@link Guess}.name */
     answerName?: string
   }>(),
   { shareUrl: '', answerCode: '', answerName: '' },
@@ -52,7 +53,7 @@ function onShared(message: string, ok: boolean) {
         <p class="answer" v-if="status === 'won'">
           <span class="code">{{ answerCode }}</span>
           <span class="arrow" aria-hidden="true">→</span>
-          <span class="name">{{ answerName }}</span>
+          <span class="name">{{ answerName.replace('/', '\n') }}</span>
         </p>
 
         <!-- <p class="answer" v-else-if="answerName">
@@ -144,6 +145,7 @@ function onShared(message: string, ok: boolean) {
   font-size: 24px;
   font-weight: 700;
   letter-spacing: 0.04em;
+  white-space: pre-line;
   color: var(--color-correct);
 }
 

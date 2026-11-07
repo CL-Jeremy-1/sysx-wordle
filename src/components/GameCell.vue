@@ -8,7 +8,7 @@ const props = withDefaults(
   defineProps<{
     letter?: string
     /** The Chinese character, shown only once the position is pinned down. */
-    char?: string | null
+    charOrAltChars?: string | null
     state?: LetterState
     /** Plays the flip animation when the row's verdict arrives. */
     reveal?: boolean
@@ -17,8 +17,8 @@ const props = withDefaults(
   }>(),
   {
     letter: '',
-    char: null,
-    state: undefined,
+    charOrAltChars: null,
+    state: 'absent',
     reveal: false,
     flipDelay: 0,
   },
@@ -71,7 +71,9 @@ watch(
   <div class="cell"
     :class="[colors ? `is-${colors}` : '', { 'is-flipping': flipping, 'is-typing': letter && !colors }]">
     <span class="letter">{{ letter }}</span>
-    <span v-if="char && letter" class="char">{{ char }}</span>
+    <span v-if="charOrAltChars && letter" class="charOrAltChars">
+      <span v-for="char, index in charOrAltChars" :class="'char-' + (index + 1)">{{ char }}</span>
+    </span>
   </div>
 </template>
 
@@ -111,9 +113,9 @@ watch(
 
 /* The Chinese character sits under its letter, on the same tile. It appears
    with the letter and keeps whatever colour the verdict gives the tile. */
-.char {
+.charOrAltChars {
   position: absolute;
-  bottom: 4px;
+  bottom: 0;
   left: 3px;
   right: 0;
   font-size: calc(var(--tile, 68px) * 0.25);
@@ -121,6 +123,25 @@ watch(
   line-height: 1.1;
   color: white;
   user-select: none;
+}
+
+.charOrAltChars > * {
+  position: relative;
+  bottom: -2px;
+}
+
+.charOrAltChars > :not(:only-child) {
+  bottom: 0;
+  font-size: 0.75em;
+  letter-spacing: 0.5px;
+}
+
+.charOrAltChars > .char-1 {
+  vertical-align: 6px;
+}
+
+.charOrAltChars > .char-2 {
+  vertical-align: 3px;
 }
 
 .cell.is-flipping {

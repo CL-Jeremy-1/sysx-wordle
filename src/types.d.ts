@@ -17,11 +17,14 @@ interface Tile {
    * The Chinese character standing at this position, revealed only where the
    * letter already matches the answer — otherwise the mapping stays hidden.
    */
-  char: string | null
+  charOrAltChars: string | null
   state: LetterState
 }
 
-/** One submitted guess: the raw letters, the tile verdicts, and the name typed. */
+/**
+ * One submitted guess: the raw letters typed, the tile verdicts and the name(s)
+ * matched. Multiple names are joined together with "/".
+ */
 interface Guess {
   code: string
   name: string

@@ -48,21 +48,6 @@ export class WordList {
     return this.codeChars.has(normalize(char))
   }
 
-  /**
-   * The preferred spelling of a code: the entry the word list itself lists
-   * first. Used when the answer endpoint only hands back the letters.
-   */
-  preferredName(code: string): string {
-    return this.lookup(code)[0]?.[0] ?? ''
-  }
-
-  /** The name typed for a guess, favouring the answer when codes collide. */
-  resolveName(code: string, answerCode: string): string {
-    const candidates = this.lookup(code)
-    if (candidates.length === 0) return ''
-    const exact = candidates.find((e) => e[1] === answerCode)
-    return (exact ?? candidates[0])[0]
-  }
   randomCode() {
     const length = this.entries.length
     return this.entries[Math.floor(Math.random() * length)][1]

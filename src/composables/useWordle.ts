@@ -87,7 +87,7 @@ export function useWordle() {
       }
 
       answerCode.value = code
-      answerName.value = list.preferredName(code)
+      answerName.value = list.lookup(code).map((entry) => entry[0]).join('/')
       status.value = 'playing'
     } catch (error) {
       if (signal?.aborted) return
@@ -121,10 +121,9 @@ export function useWordle() {
       return
     }
 
-    // The characters shown are the ones the player's own code spells, so a code
-    // that fits several names displays the spelling the player meant.
-    const guessName = list.resolveName(code, answerCode.value)
-    const { guess, solved } = buildGuess(code, answerCode.value, guessName)
+    // At most 2 candidates will be returned
+    const matchedNames = list.lookup(code).map((entry) => entry[0])
+    const { guess, solved } = buildGuess(code, answerCode.value, matchedNames)
 
     revealing.value = true
     guesses.value = [...guesses.value, guess]

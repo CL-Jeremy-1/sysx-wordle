@@ -113,7 +113,7 @@ function onKeydown(event: KeyboardEvent) {
     <header class="topbar">
       <div class="brand">
         <h1>女声优缩写 Wordle</h1>
-        <p class="tagline">Powered by <a href="https://sysx.nulla.top/" target="_blank">SYSX</a></p>
+        <p class="tagline">{{ tagline }}</p>
       </div>
       <div class="tools">
         <button type="button" class="ghost" @click="helpOpen = true">玩法</button>
