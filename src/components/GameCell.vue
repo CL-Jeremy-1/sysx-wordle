@@ -18,7 +18,7 @@ const props = withDefaults(
   {
     letter: '',
     charOrAltChars: null,
-    state: 'absent',
+    state: undefined,
     reveal: false,
     flipDelay: 0,
   },
@@ -125,22 +125,22 @@ watch(
   user-select: none;
 }
 
-.charOrAltChars > * {
+.charOrAltChars>* {
   position: relative;
   bottom: -2px;
 }
 
-.charOrAltChars > :not(:only-child) {
+.charOrAltChars> :not(:only-child) {
   bottom: 0;
   font-size: 0.75em;
   letter-spacing: 0.5px;
 }
 
-.charOrAltChars > .char-1 {
+.charOrAltChars>.char-1 {
   vertical-align: 6px;
 }
 
-.charOrAltChars > .char-2 {
+.charOrAltChars>.char-2 {
   vertical-align: 3px;
 }
 

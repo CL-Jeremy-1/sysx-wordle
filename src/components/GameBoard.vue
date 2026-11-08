@@ -33,8 +33,8 @@ const rows = computed(() => {
       tiles: Array.from({ length: props.codeLength }, (_, cellIndex) => ({
         letter: letters[cellIndex] ?? '',
         charOrAltChars: null,
-        state: 'absent',
-      }) as Tile),
+        state: undefined,
+      })),
       reveal: false,
     }
   })
@@ -49,9 +49,9 @@ const rows = computed(() => {
 <template>
   <div class="board" :class="{ 'is-shaky': shaky }" role="grid" aria-label="猜词盘面">
     <div v-for="row in rows" :key="row.key" class="row" :class="{ 'is-current': row.isCurrent }" role="row">
-      <GameCell v-for="(tile, cellIndex) in row.tiles" :key="cellIndex"
-        :letter="tile.letter" :charOrAltChars="tile.charOrAltChars"
-        :state="tile.state" :reveal="row.reveal" :flip-delay="cellIndex * FLIP_STEP_MS" />
+      <GameCell v-for="(tile, cellIndex) in row.tiles" :key="cellIndex" :letter="tile.letter"
+        :charOrAltChars="tile.charOrAltChars" :state="tile.state" :reveal="row.reveal"
+        :flip-delay="cellIndex * FLIP_STEP_MS" />
     </div>
   </div>
 </template>
