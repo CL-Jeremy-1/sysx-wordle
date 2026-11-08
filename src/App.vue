@@ -27,7 +27,7 @@ const CN_NUMERALS: Record<number, string> = { 3: '三', 4: '四', 5: '五' }
 const tagline = computed(() =>
   game.status.value === 'playing' || finished.value
     ? `${CN_NUMERALS[game.codeLength.value]}位字母 · ${CN_NUMERALS[game.maxGuesses.value]}步机会 · 每步显示中文名`
-    : '三或四位字母 · 由今日答案决定 · 每步显示中文名',
+    : ' ',
 )
 /** Wait for the final row's flip to finish before the popup takes over. */
 const resultOpen = computed(
@@ -197,6 +197,7 @@ function onKeydown(event: KeyboardEvent) {
   margin-top: 3px;
   font-size: 13px;
   color: var(--text);
+  white-space: pre-wrap;
 }
 
 .tools {
