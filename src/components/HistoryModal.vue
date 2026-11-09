@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { NConfigProvider, NDatePicker, darkTheme, dateZhCN, zhCN } from 'naive-ui'
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import { isoDate } from '../game/date'
 import { useHistory } from '../composables/useHistory'
+import { loadNaive, type Naive } from '../naive'
 
 const props = defineProps<{ open: boolean }>()
 
@@ -17,12 +17,26 @@ const { byDate, loaded, errorMessage, load } = useHistory()
 /** The highlighted day, ISO `YYYY-MM-DD`; only the panel's cursor. */
 const selected = ref<string | null>(null)
 
+/** The CDN copy of naive-ui; null until its script has executed. */
+const naive = shallowRef<Naive | null>(null)
+/** Set when every CDN mirror failed; shown instead of the calendar. */
+const naiveError = ref('')
+
 // Fetch on the first open, then rest the cursor on the latest recorded day —
 // clicking a day is still what starts a puzzle.
 watch(
   () => props.open,
   (open) => {
     if (!open) return
+    void loadNaive().then(
+      (lib) => {
+        naive.value = lib
+        naiveError.value = ''
+      },
+      (error) => {
+        naiveError.value = error instanceof Error ? error.message : String(error)
+      },
+    )
     void load().then(() => {
       if (selected.value) return
       const dates = [...byDate.value.keys()]
@@ -81,15 +95,18 @@ const themeOverrides = computed(() => ({
         <p v-else-if="byDate.size === 0" class="state">暂无历史记录</p>
 
         <template v-else>
-          <div class="calendar">
-            <n-config-provider :theme="isDark ? darkTheme : null" :theme-overrides="themeOverrides" :locale="zhCN"
-              :date-locale="dateZhCN">
-              <n-date-picker v-model:formatted-value="selected" type="date" panel value-format="yyyy-MM-dd"
-                :actions="[]" :is-date-disabled="isDateDisabled" @update:formatted-value="onPick" />
-            </n-config-provider>
+          <p v-if="naiveError" class="state is-error">{{ naiveError }}</p>
+          <p v-else-if="!naive" class="state">日历组件加载中…</p>
+          <div v-else class="calendar">
+            <component :is="naive!.NConfigProvider" :theme="isDark ? naive!.darkTheme : null"
+              :theme-overrides="themeOverrides" :locale="naive!.zhCN" :date-locale="naive!.dateZhCN">
+              <component :is="naive!.NDatePicker" v-model:formatted-value="selected" type="date" panel
+                value-format="yyyy-MM-dd" :actions="[]" :is-date-disabled="isDateDisabled"
+                @update:formatted-value="onPick" />
+            </component>
           </div>
 
-          <p class="hint">选择日期，重玩那天的题目</p>
+          <p v-if="naive" class="hint">选择日期，重玩那天的题目</p>
         </template>
       </div>
     </div>

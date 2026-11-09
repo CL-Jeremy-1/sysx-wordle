@@ -39,6 +39,8 @@ pnpm build    # 类型检查 + 产物构建
 pnpm preview  # 预览构建产物
 ```
 
+naive-ui 不打进包：打开「历史」弹窗时按需从 jsdelivr CDN 加载 UMD 产物，并绑定到应用自身的 Vue 实例（见 `src/naive.ts`）；`package.json` 里只留 devDependency 用于类型检查。
+
 ## 目录结构
 
 ```
