@@ -36,3 +36,9 @@ interface Evaluation {
   /** `true` when every letter is in its place. */
   solved: boolean
 }
+
+/** One completed day of the answer history: its code and ISO `YYYY-MM-DD` date. */
+interface HistoryEntry {
+  sysx: string
+  date: string
+}

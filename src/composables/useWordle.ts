@@ -64,7 +64,11 @@ export function useWordle() {
     if (status.value === 'playing') void shake()
   }
 
-  async function start(signal?: AbortSignal) {
+  /**
+   * Start a puzzle. Without `explicitCode` it asks today's endpoint; with one —
+   * a history replay — the given code is the answer and nothing is fetched.
+   */
+  async function start(explicitCode?: string, signal?: AbortSignal) {
     status.value = 'loading'
     errorMessage.value = ''
     guesses.value = []
@@ -73,8 +77,7 @@ export function useWordle() {
 
     try {
       // The answer comes first: its width picks the word list and guess count.
-      const body = await fetchAnswerText(signal)
-      const code = extractAnswerCode(body)
+      const code = explicitCode ?? extractAnswerCode(await fetchAnswerText(signal))
       if (!code) {
         throw new Error('答案接口没有返回三或四位字母')
       }
@@ -136,6 +139,7 @@ export function useWordle() {
     else if (guesses.value.length >= maxGuesses.value) status.value = 'lost'
   }
 
+  /** Back to the daily puzzle; a history replay is replayed by picking again. */
   function restart() {
     void start()
   }

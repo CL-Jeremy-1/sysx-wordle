@@ -2,12 +2,17 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import GameBoard from './components/GameBoard.vue'
 import HelpModal from './components/HelpModal.vue'
+import HistoryModal from './components/HistoryModal.vue'
 import LetterKeyboard from './components/LetterKeyboard.vue'
 import ResultModal from './components/ResultModal.vue'
+import { todayIso } from './game/date'
 import { useWordle } from './composables/useWordle'
 
 const game = useWordle()
 const helpOpen = ref(false)
+const historyOpen = ref(false)
+/** ISO date of the history day being replayed; `null` for the daily puzzle. */
+const practiceDate = ref<string | null>(null)
 /** Lets the player send the result popup away and study the board. */
 const resultDismissed = ref(false)
 
@@ -18,17 +23,20 @@ const shareUrl = computed(() => {
   return `${origin}${pathname}`
 })
 
+/** The shared result names the puzzle's day: a replay's day, else today. */
+const shareDate = computed(() => practiceDate.value ?? todayIso())
+
 const finished = computed(
   () => game.status.value === 'won' || game.status.value === 'lost',
 )
 
 /** Mode numerals for the tagline; until the answer loads the mode is unknown. */
 const CN_NUMERALS: Record<number, string> = { 3: '三', 4: '四', 5: '五' }
-const tagline = computed(() =>
-  game.status.value === 'playing' || finished.value
-    ? `${CN_NUMERALS[game.codeLength.value]}位字母 · ${CN_NUMERALS[game.maxGuesses.value]}步机会 · 每步显示中文名`
-    : ' ',
-)
+const tagline = computed(() => {
+  if (game.status.value !== 'playing' && !finished.value) return ' '
+  const mode = `${CN_NUMERALS[game.codeLength.value]}位字母 · ${CN_NUMERALS[game.maxGuesses.value]}步机会 · 每步显示中文名`
+  return practiceDate.value ? `${practiceDate.value} 重玩 · ${mode}` : mode
+})
 /** Wait for the final row's flip to finish before the popup takes over. */
 const resultOpen = computed(
   () => finished.value && !game.revealing.value && !resultDismissed.value,
@@ -53,7 +61,17 @@ function closeHelp() {
 
 function restart() {
   resultDismissed.value = false
+  practiceDate.value = null
   game.restart()
+}
+
+/** A history pick closes the picker and replays that day on the main board. */
+function onPickHistory(entry: HistoryEntry) {
+  historyOpen.value = false
+  practiceDate.value = entry.date
+  void game.start(entry.sysx).then(() => {
+    if (game.status.value === 'playing') game.flash(`已载入 ${entry.date} 的题目`)
+  })
 }
 
 /** Skip the toast on a failed copy: the button already reports the failure. */
@@ -68,6 +86,15 @@ function onKeydown(event: KeyboardEvent) {
     if (event.key === 'Escape' || event.key === 'Enter') {
       event.preventDefault()
       closeHelp()
+    }
+    return
+  }
+
+  // The history popup owns the keyboard while it is up.
+  if (historyOpen.value) {
+    if (event.key === 'Escape' || event.key === 'Enter') {
+      event.preventDefault()
+      historyOpen.value = false
     }
     return
   }
@@ -117,6 +144,7 @@ function onKeydown(event: KeyboardEvent) {
       </div>
       <div class="tools">
         <button type="button" class="ghost" @click="helpOpen = true">玩法</button>
+        <button type="button" class="ghost" @click="historyOpen = true">历史</button>
         <button type="button" class="ghost" :disabled="game.status.value === 'loading'" @click="restart()">
           重开
         </button>
@@ -124,7 +152,9 @@ function onKeydown(event: KeyboardEvent) {
     </header>
 
     <main class="stage">
-      <p v-if="game.status.value === 'loading'" class="placeholder">正在获取今日答案…</p>
+      <p v-if="game.status.value === 'loading'" class="placeholder">
+        {{ practiceDate ? '正在载入往期题目…' : '正在获取今日答案…' }}
+      </p>
 
       <template v-else-if="game.status.value === 'error'">
         <p class="placeholder is-error">{{ game.errorMessage.value }}</p>
@@ -155,11 +185,14 @@ function onKeydown(event: KeyboardEvent) {
 
     <ResultModal v-if="resultOpen && (game.status.value === 'won' || game.status.value === 'lost')"
       :status="game.status.value" :guesses="game.guesses.value" :max-guesses="game.maxGuesses.value"
-      :share-url="shareUrl" :answer-code="game.answerCode.value" :answer-name="game.answerName.value"
-      @restart="restart()" @close="resultDismissed = true" @shared="onShared" />
+      :date="shareDate" :share-url="shareUrl" :answer-code="game.answerCode.value"
+      :answer-name="game.answerName.value" @restart="restart()" @close="resultDismissed = true"
+      @shared="onShared" />
 
     <HelpModal :open="helpOpen" :max-guesses="game.maxGuesses.value" :code-length="game.codeLength.value"
       @close="closeHelp" />
+
+    <HistoryModal :open="historyOpen" @pick="onPickHistory" @close="historyOpen = false" />
   </div>
 </template>
 
@@ -180,6 +213,10 @@ function onKeydown(event: KeyboardEvent) {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* Three buttons no longer fit next to the brand on narrow phones, so the
+     tools wrap to their own row instead of overflowing. */
+  flex-wrap: wrap;
+  row-gap: 8px;
   gap: 12px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border);
@@ -226,6 +263,13 @@ function onKeydown(event: KeyboardEvent) {
 .ghost:disabled {
   opacity: 0.5;
   cursor: default;
+}
+
+@media (max-width: 480px) {
+  .ghost {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
 }
 
 .stage {

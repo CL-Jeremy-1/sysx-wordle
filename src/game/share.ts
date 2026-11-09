@@ -12,6 +12,8 @@ export interface ShareOptions {
   solved: boolean
   guessCount: number
   maxGuesses: number
+  /** The day the shared puzzle was set: today's date, or a replayed one. */
+  date: string
   /** Appended so the recipient can play the same puzzle. */
   url?: string
 }
@@ -20,7 +22,7 @@ export interface ShareOptions {
  * The shareable result: plain text plus emoji, never the answer itself.
  *
  * ```
- * 字母 Wordle 3/4
+ * 女声优缩写 Wordle 3/5 · 2026-11-03
  *
  * ⬛🟩⬛⬛
  * 🟨⬛⬛🟨
@@ -29,10 +31,10 @@ export interface ShareOptions {
  */
 export function buildShareText(
   guesses: readonly Guess[],
-  { solved, guessCount, maxGuesses, url }: ShareOptions,
+  { solved, guessCount, maxGuesses, date, url }: ShareOptions,
 ): string {
   const score = solved ? `${guessCount}/${maxGuesses}` : `X/${maxGuesses}`
-  const lines = [`女声优缩写 Wordle ${score}`, '']
+  const lines = [`女声优缩写 Wordle ${score} · ${date}`, '']
 
   for (const guess of guesses) {
     lines.push(guess.tiles.map((tile) => SQUARES[tile.state] ?? HIDDEN).join(''))

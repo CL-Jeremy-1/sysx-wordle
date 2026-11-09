@@ -10,6 +10,8 @@ withDefaults(
     status: 'won' | 'lost'
     guesses: Guess[]
     maxGuesses: number
+    /** The shared puzzle's day; a replay shares the replayed date. */
+    date: string
     /** Page link appended to the shared result. Never part of the grid. */
     shareUrl?: string
     /** Revealed only on a win. @see {@link Guess}.code */
@@ -69,8 +71,8 @@ function onShared(message: string, ok: boolean) {
         <p class="meta" v-else>试试分享你的成绩，看看别人要几步。</p> -->
 
         <div class="actions">
-          <ShareResult :guesses="guesses" :solved="status === 'won'" :max-guesses="maxGuesses" :url="shareUrl"
-            @done="onShared" />
+          <ShareResult :guesses="guesses" :solved="status === 'won'" :max-guesses="maxGuesses" :date="date"
+            :url="shareUrl" @done="onShared" />
           <button type="button" class="ghost" @click="emit('close')">关闭</button>
           <button type="button" class="again" @click="emit('restart')">
             {{ status === 'won' ? '再来一局' : '重试' }}

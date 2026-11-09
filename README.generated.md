@@ -15,6 +15,7 @@
 5. 键盘用原版的三行 QWERTY 排布，词库中不存在的字母（如 `i`、`o`、`u`、`v`）会变灰并禁用。
 6. 只接受词库中存在的字母组合；限定步数内（三字母 4 步、四字母 5 步）猜中即胜，结束时弹出结算弹窗，可以「看看盘面」或「再来一局」。
 7. 底部有 [点此查询女声优缩写](https://sysx.nulla.top) 的入口。
+8. 顶栏「历史」可以重玩往期：日历面板（Naive UI）中只有有记录的日期可选，点选后回到盘面作答当天的题目，「重开」随时回到今日题。
 
 颜色说的是**字母**猜得对不对；汉字永远是你自己这次输入的字，不随颜色改变。
 
@@ -25,6 +26,7 @@
 | `public/4letters.json` | 四字缩写词库，587 条 `[汉字, 字母]`，字母组合用于校验输入。同一个字母组合可能对应多个名字（576 个唯一组合）。 |
 | `public/3letters.json` | 三字缩写词库，160 条（155 个唯一组合）。 |
 | `.env` 的 `VITE_ANSWER_API` | 今日答案接口，返回裸字母组合（如 `hgcn`）。前端通过 `import.meta.env` 读取。 |
+| `VITE_ANSWER_API` 的 `/history` | 往期题目列表 `[{ sysx, date }]`，「游玩历史」弹窗的数据源；点选日期即在主盘面作答该日题目。 |
 
 **模式由答案驱动**：先请求今日答案，按返回字母的宽度选择词库文件（`3letters.json` / `4letters.json`）与可猜步数（4 / 5 步），再开始本局。换接口只需改 `.env` 里的 `VITE_ANSWER_API` 后重启开发服务器。
 
@@ -49,12 +51,14 @@ src/
 │   ├── answerApi.ts   # 答案接口请求与返回内容解析
 │   └── evaluate.ts    # Wordle 判定规则与汉字揭晓逻辑
 ├── composables/
-│   └── useWordle.ts   # 游戏状态机（加载 → 进行中 → 胜/负）
+│   ├── useWordle.ts   # 游戏状态机（加载 → 进行中 → 胜/负）
+│   └── useHistory.ts  # 历史记录加载与日期索引
 └── components/
     ├── GameBoard.vue      # 盘面（列数与行数随模式：3×4 / 4×5）
     ├── GameCell.vue       # 单个字母格（含汉字与翻牌动画）
     ├── LetterKeyboard.vue # 三行 QWERTY 屏幕键盘（禁用词库没有的字母）
     ├── HelpModal.vue      # 玩法说明
+    ├── HistoryModal.vue   # 游玩历史（Naive UI 日历面板选日期重玩当日题）
     └── ResultModal.vue    # 通关 / 失败的结算弹窗
 ```
 

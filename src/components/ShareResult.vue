@@ -11,6 +11,8 @@ const props = withDefaults(
     guesses: Guess[]
     solved: boolean
     maxGuesses: number
+    /** The shared puzzle's day, `YYYY-MM-DD`, worked into the shared text. */
+    date: string
     /** Shared alongside the grid so the recipient can play the same puzzle. */
     url?: string
   }>(),
@@ -40,6 +42,7 @@ async function onCopy() {
     solved: props.solved,
     guessCount: props.guesses.length,
     maxGuesses: props.maxGuesses,
+    date: props.date,
     url: props.url || undefined,
   })
 
