@@ -75,7 +75,7 @@ function onShared(message: string, ok: boolean) {
             :url="shareUrl" @done="onShared" />
           <button type="button" class="ghost" @click="emit('close')">关闭</button>
           <button type="button" class="again" @click="emit('restart')">
-            {{ status === 'won' ? '再来一局' : '重试' }}
+            {{ status === 'won' ? '重玩' : '重试' }}
           </button>
         </div>
 

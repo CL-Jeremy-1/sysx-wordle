@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import GameBoard from './components/GameBoard.vue'
 import HelpModal from './components/HelpModal.vue'
 import HistoryModal from './components/HistoryModal.vue'
@@ -34,12 +34,21 @@ const finished = computed(
 const CN_NUMERALS: Record<number, string> = { 3: '三', 4: '四', 5: '五' }
 const tagline = computed(() => {
   if (game.status.value !== 'playing' && !finished.value) return ' '
-  const mode = `${CN_NUMERALS[game.codeLength.value]}位字母 · ${CN_NUMERALS[game.maxGuesses.value]}步机会 · 每步显示中文名`
-  return practiceDate.value ? `${practiceDate.value} 重玩 · ${mode}` : mode
+  const mode = `${CN_NUMERALS[game.codeLength.value]}位字母 · ${CN_NUMERALS[game.maxGuesses.value]}步机会`
+  return practiceDate.value ? `${practiceDate.value} 题目 · ${mode}` : mode
 })
 /** Wait for the final row's flip to finish before the popup takes over. */
 const resultOpen = computed(
   () => finished.value && !game.revealing.value && !resultDismissed.value,
+)
+
+// Any fresh puzzle — from 重开 or a history pick — invalidates the old
+// dismissal, or the next outcome popup would never show again.
+watch(
+  () => game.status.value,
+  (status) => {
+    if (status === 'loading') resultDismissed.value = false
+  },
 )
 
 onMounted(() => {
@@ -60,7 +69,6 @@ function closeHelp() {
 }
 
 function restart() {
-  resultDismissed.value = false
   practiceDate.value = null
   game.restart()
 }
@@ -184,10 +192,9 @@ function onKeydown(event: KeyboardEvent) {
     </footer>
 
     <ResultModal v-if="resultOpen && (game.status.value === 'won' || game.status.value === 'lost')"
-      :status="game.status.value" :guesses="game.guesses.value" :max-guesses="game.maxGuesses.value"
-      :date="shareDate" :share-url="shareUrl" :answer-code="game.answerCode.value"
-      :answer-name="game.answerName.value" @restart="restart()" @close="resultDismissed = true"
-      @shared="onShared" />
+      :status="game.status.value" :guesses="game.guesses.value" :max-guesses="game.maxGuesses.value" :date="shareDate"
+      :share-url="shareUrl" :answer-code="game.answerCode.value" :answer-name="game.answerName.value"
+      @restart="restart()" @close="resultDismissed = true" @shared="onShared" />
 
     <HelpModal :open="helpOpen" :max-guesses="game.maxGuesses.value" :code-length="game.codeLength.value"
       @close="closeHelp" />
@@ -217,7 +224,7 @@ function onKeydown(event: KeyboardEvent) {
      tools wrap to their own row instead of overflowing. */
   flex-wrap: wrap;
   row-gap: 8px;
-  gap: 12px;
+  column-gap: 4px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border);
 }
@@ -239,7 +246,7 @@ function onKeydown(event: KeyboardEvent) {
 
 .tools {
   display: flex;
-  gap: 8px;
+  gap: 4px;
 }
 
 .ghost {
