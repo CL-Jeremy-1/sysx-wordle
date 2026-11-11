@@ -11,8 +11,8 @@ import { useWordle } from './composables/useWordle'
 const game = useWordle()
 const helpOpen = ref(false)
 const historyOpen = ref(false)
-/** ISO date of the history day being replayed; `null` for the daily puzzle. */
-const practiceDate = ref<string | null>(null)
+/** The history day being replayed; `null` for the daily puzzle. */
+const practice = ref<HistoryEntry | null>(null)
 /** Lets the player send the result popup away and study the board. */
 const resultDismissed = ref(false)
 
@@ -24,7 +24,7 @@ const shareUrl = computed(() => {
 })
 
 /** The shared result names the puzzle's day: a replay's day, else today. */
-const shareDate = computed(() => practiceDate.value ?? todayIso())
+const shareDate = computed(() => practice.value?.date ?? todayIso())
 
 const finished = computed(
   () => game.status.value === 'won' || game.status.value === 'lost',
@@ -35,7 +35,7 @@ const CN_NUMERALS: Record<number, string> = { 3: '三', 4: '四', 5: '五' }
 const tagline = computed(() => {
   if (game.status.value !== 'playing' && !finished.value) return ' '
   const mode = `${CN_NUMERALS[game.codeLength.value]}位字母 · ${CN_NUMERALS[game.maxGuesses.value]}步机会`
-  return practiceDate.value ? `${practiceDate.value} 题目 · ${mode}` : mode
+  return practice.value ? `${practice.value.date} 题目 · ${mode}` : mode
 })
 /** Wait for the final row's flip to finish before the popup takes over. */
 const resultOpen = computed(
@@ -68,15 +68,17 @@ function closeHelp() {
   localStorage.setItem('sysx-wordle:help-seen', '1')
 }
 
+/** 重开/重玩 reload whatever is in play: the replayed day, else today's. */
 function restart() {
-  practiceDate.value = null
-  game.restart()
+  const replay = practice.value
+  if (replay) void game.start(replay.sysx)
+  else game.restart()
 }
 
 /** A history pick closes the picker and replays that day on the main board. */
 function onPickHistory(entry: HistoryEntry) {
   historyOpen.value = false
-  practiceDate.value = entry.date
+  practice.value = entry
   void game.start(entry.sysx).then(() => {
     if (game.status.value === 'playing') game.flash(`已载入 ${entry.date} 的题目`)
   })
@@ -161,7 +163,7 @@ function onKeydown(event: KeyboardEvent) {
 
     <main class="stage">
       <p v-if="game.status.value === 'loading'" class="placeholder">
-        {{ practiceDate ? '正在载入往期题目…' : '正在获取今日答案…' }}
+        {{ practice ? '正在载入往期题目…' : '正在获取今日答案…' }}
       </p>
 
       <template v-else-if="game.status.value === 'error'">
