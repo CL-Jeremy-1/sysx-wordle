@@ -5,7 +5,8 @@ import HelpModal from './components/HelpModal.vue'
 import HistoryModal from './components/HistoryModal.vue'
 import LetterKeyboard from './components/LetterKeyboard.vue'
 import ResultModal from './components/ResultModal.vue'
-import { todayIso } from './game/date'
+import { isoDate } from './game/dateApi';
+import { useTimezone } from './composables/useTimezone'
 import { useWordle } from './composables/useWordle'
 
 const game = useWordle()
@@ -23,8 +24,10 @@ const shareUrl = computed(() => {
   return `${origin}${pathname}`
 })
 
+const timezone = useTimezone()
+const today = computed(() => isoDate(Date.now(), timezone.tz.value))
 /** The shared result names the puzzle's day: a replay's day, else today. */
-const shareDate = computed(() => practice.value?.date ?? todayIso())
+const shareDate = computed(() => practice.value?.date ?? today.value)
 
 const finished = computed(
   () => game.status.value === 'won' || game.status.value === 'lost',
@@ -52,6 +55,7 @@ watch(
 )
 
 onMounted(() => {
+  void timezone.load()
   void game.start()
   // Show the rules once on a first visit, then stay out of the way.
   helpOpen.value = !localStorage.getItem('sysx-wordle:help-seen')
@@ -201,7 +205,7 @@ function onKeydown(event: KeyboardEvent) {
     <HelpModal :open="helpOpen" :max-guesses="game.maxGuesses.value" :code-length="game.codeLength.value"
       @close="closeHelp" />
 
-    <HistoryModal :open="historyOpen" @pick="onPickHistory" @close="historyOpen = false" />
+    <HistoryModal :timezone="timezone.tz.value" :open="historyOpen" @pick="onPickHistory" @close="historyOpen = false" />
   </div>
 </template>
 

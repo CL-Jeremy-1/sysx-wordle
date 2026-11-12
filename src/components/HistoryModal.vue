@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
-import { isoDate } from '../game/date'
+import { isoDate } from '../game/dateApi'
 import { useHistory } from '../composables/useHistory'
 import { loadNaive, type Naive } from '../naive'
 
-const props = defineProps<{ open: boolean }>()
+const props = defineProps<{ open: boolean, timezone: string }>()
 
 const emit = defineEmits<{
   (event: 'close'): void
@@ -52,9 +52,20 @@ function onPick(value: string | null) {
   if (entry) emit('pick', entry)
 }
 
+const realDateNow = Date.now
+onBeforeUnmount(() => Date.now = realDateNow)
+/** Spoof global Date.now() while the date picker modal is open. */
+function onOpen(isOpen: boolean) {
+  if (isOpen) {
+    Date.now = () => new Date(isoDate(realDateNow(), props.timezone)).getTime()
+  } else {
+    Date.now = realDateNow
+  }
+}
+
 /** A day is pickable only when the history actually holds an entry for it. */
 function isDateDisabled(timestamp: number): boolean {
-  return !byDate.value.has(isoDate(timestamp))
+  return !byDate.value.has(isoDate(timestamp, props.timezone))
 }
 
 // The app themes itself with `prefers-color-scheme`; Naive UI needs the same
@@ -102,7 +113,7 @@ const themeOverrides = computed(() => ({
               :theme-overrides="themeOverrides" :locale="naive!.zhCN" :date-locale="naive!.dateZhCN">
               <component :is="naive!.NDatePicker" v-model:formatted-value="selected" type="date" panel
                 value-format="yyyy-MM-dd" :actions="[]" :is-date-disabled="isDateDisabled"
-                @update:formatted-value="onPick" />
+                @update:formatted-value="onPick" @update:show="onOpen" />
             </component>
           </div>
 
